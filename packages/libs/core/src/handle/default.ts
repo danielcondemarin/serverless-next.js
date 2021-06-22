@@ -1,9 +1,12 @@
 import { renderErrorPage } from "./error";
+import { handleFallback } from "./fallback";
 import { setCustomHeaders } from "./headers";
 import { redirect } from "./redirect";
 import { toRequest } from "./request";
 import { routeDefault } from "../route";
 import { addDefaultLocaleToPath } from "../route/locale";
+import { notFoundPage } from "../route/notfound";
+import { Handler } from "./types";
 import {
   Event,
   ExternalRoute,
@@ -63,6 +66,27 @@ export const renderRoute = async (
   }
 };
 
+const handleRoute = async (
+  event: Event,
+  route: RenderRoute | StaticRoute,
+  manifest: PageManifest,
+  routesManifest: RoutesManifest,
+  handler: Handler
+): Promise<void> => {
+  const error = route.isStatic
+    ? (route as StaticRoute)
+    : await renderRoute(
+        event,
+        route,
+        manifest,
+        routesManifest,
+        handler.getPage
+      );
+  if (error) {
+    await handler.getFile(event, error);
+  }
+};
+
 /*
  * Handles page and data routes.
  *
@@ -77,8 +101,8 @@ export const handleDefault = async (
   manifest: PageManifest,
   prerenderManifest: PrerenderManifest,
   routesManifest: RoutesManifest,
-  getPage: (page: string) => any
-): Promise<ExternalRoute | PublicFileRoute | StaticRoute | void> => {
+  handler: Handler
+): Promise<ExternalRoute | PublicFileRoute | void> => {
   const request = toRequest(event);
   const route = await routeDefault(
     request,
@@ -95,16 +119,50 @@ export const handleDefault = async (
     return redirect(event, route as RedirectRoute);
   }
   if (route.isRender) {
-    return renderRoute(
+    return handleRoute(
       event,
       route as RenderRoute,
       manifest,
       routesManifest,
-      getPage
+      handler
     );
   }
   if (route.isUnauthorized) {
     return unauthorized(event, route as UnauthorizedRoute);
+  }
+
+  if (
+    route.isStatic &&
+    event.req.method !== "GET" &&
+    event.req.method !== "HEAD"
+  ) {
+    // Static pages only support GET/HEAD -> return 404 page
+    const errorRoute = notFoundPage(
+      event.req.url ?? "",
+      manifest,
+      routesManifest
+    );
+    return handleRoute(event, errorRoute, manifest, routesManifest, handler);
+  }
+
+  if (route.isStatic) {
+    const staticRoute = route as StaticRoute;
+    if (await handler.getFile(event, staticRoute)) {
+      return;
+    }
+    const fallback = await handleFallback(
+      event,
+      route,
+      manifest,
+      routesManifest,
+      handler.getPage
+    );
+    if (fallback && !fallback.isStatic) {
+      return handler.putFiles(event, fallback);
+    } else if (fallback) {
+      await handler.getFile(event, fallback);
+    }
+    return;
   }
 
   // Let typescript check this is correct type to be returned

@@ -55,6 +55,7 @@ describe("Lambda@Edge", () => {
   `("Routing with trailingSlash = $trailingSlash", ({ trailingSlash }) => {
     let handler: any;
     let mockTriggerStaticRegeneration: jest.Mock;
+    let mockS3GetPage: jest.Mock;
     let mockS3StorePage: jest.Mock;
     let runRedirectTest: (
       path: string,
@@ -109,6 +110,12 @@ describe("Lambda@Edge", () => {
         triggerStaticRegeneration: mockTriggerStaticRegeneration
       }));
 
+      mockS3GetPage = jest.fn();
+      jest.mock("../../src/s3/s3GetPage", () => ({
+        __esModule: true,
+        s3GetPage: mockS3GetPage
+      }));
+
       mockS3StorePage = jest.fn();
       jest.mock("../../src/s3/s3StorePage", () => ({
         __esModule: true,
@@ -145,17 +152,15 @@ describe("Lambda@Edge", () => {
 
     describe("HTML pages routing", () => {
       it.each`
-        path                               | expectedPage
-        ${"/"}                             | ${"/index.html"}
-        ${"/terms"}                        | ${"/terms.html"}
-        ${"/users/batman"}                 | ${"/users/[...user].html"}
-        ${"/users/test/catch/all"}         | ${"/users/[...user].html"}
-        ${"/fallback/example-static-page"} | ${"/fallback/example-static-page.html"}
-        ${"/fallback/not-yet-built"}       | ${"/fallback/not-yet-built.html"}
-        ${"/preview"}                      | ${"/preview.html"}
+        path                               | expectedFile
+        ${"/"}                             | ${"pages/index.html"}
+        ${"/terms"}                        | ${"pages/terms.html"}
+        ${"/users/batman"}                 | ${"pages/users/[...user].html"}
+        ${"/users/test/catch/all"}         | ${"pages/users/[...user].html"}
+        ${"/fallback/example-static-page"} | ${"pages/fallback/example-static-page.html"}
       `(
-        "serves page $expectedPage from S3 for path $path",
-        async ({ path, expectedPage }) => {
+        "serves page $expectedFile with S3 client for path $path",
+        async ({ path, expectedFile }) => {
           // If trailingSlash = true, append "/" to get the non-redirected path
           if (trailingSlash && !path.endsWith("/")) {
             path += "/";
@@ -166,23 +171,24 @@ describe("Lambda@Edge", () => {
             host: "mydistribution.cloudfront.net"
           });
 
+          mockS3GetPage.mockReturnValueOnce({
+            bodyString: expectedFile,
+            contentType: "text/html"
+          });
+
           const result = await handler(event);
 
-          const request = result as CloudFrontRequest;
+          const response = result as CloudFrontResultResponse;
 
-          expect(request.origin).toEqual({
-            s3: {
-              authMethod: "origin-access-identity",
-              domainName: "my-bucket.s3.amazonaws.com",
-              path: "/static-pages/build-id",
-              region: "us-east-1"
-            }
+          expect(response.status).toEqual(200);
+          expect(mockS3GetPage).toHaveBeenCalledWith({
+            basePath: "",
+            bucketName: "my-bucket.s3.amazonaws.com",
+            buildId: "build-id",
+            file: expectedFile,
+            isData: false,
+            region: "us-east-1"
           });
-          expect(request.uri).toEqual(expectedPage);
-          expect(request.headers.host[0].key).toEqual("host");
-          expect(request.headers.host[0].value).toEqual(
-            "my-bucket.s3.amazonaws.com"
-          );
         }
       );
 
@@ -221,24 +227,145 @@ describe("Lambda@Edge", () => {
           host: "mydistribution.cloudfront.net"
         });
 
-        const request = (await handler(event)) as CloudFrontRequest;
-        expect(request.uri).toEqual("/404.html");
-      });
-
-      it("terms.html should return 200 status after successful S3 Origin response", async () => {
-        const event = createCloudFrontEvent({
-          uri: "/terms.html",
-          host: "mydistribution.cloudfront.net",
-          config: { eventType: "origin-response" } as any,
-          response: {
-            status: "200"
-          } as any
+        mockS3GetPage.mockReturnValueOnce({
+          bodyString: "Not Found"
         });
 
         const response = (await handler(event)) as CloudFrontResultResponse;
-
-        expect(response.status).toEqual("200");
+        expect(response.status).toEqual(404);
       });
+
+      it("HTML page without any props served with S3 client on preview mode", async () => {
+        const event = createCloudFrontEvent({
+          uri: `/terms${trailingSlash ? "/" : ""}`,
+          host: "mydistribution.cloudfront.net",
+          requestHeaders: {
+            cookie: [
+              {
+                key: "Cookie",
+                value: `__next_preview_data=${previewToken}; __prerender_bypass=def`
+              }
+            ]
+          }
+        });
+
+        mockS3GetPage.mockReturnValueOnce({
+          bodyString: "terms.html",
+          contentType: "text/html"
+        });
+
+        const result = await handler(event);
+
+        const response = result as CloudFrontResultResponse;
+
+        expect(response.status).toEqual(200);
+        expect(mockS3GetPage).toHaveBeenCalledWith({
+          basePath: "",
+          bucketName: "my-bucket.s3.amazonaws.com",
+          buildId: "build-id",
+          file: "pages/terms.html",
+          isData: false,
+          region: "us-east-1"
+        });
+      });
+    });
+
+    describe("SSG page routing", () => {
+      it.each`
+        path                         | expectedFile
+        ${"/fallback/already-built"} | ${"pages/fallback/already-built.html"}
+        ${"/preview"}                | ${"pages/preview.html"}
+      `(
+        "serves page $expectedFile with S3 client for path $path",
+        async ({ path, expectedFile }) => {
+          // If trailingSlash = true, append "/" to get the non-redirected path
+          if (trailingSlash && !path.endsWith("/")) {
+            path += "/";
+          }
+
+          const event = createCloudFrontEvent({
+            uri: path,
+            host: "mydistribution.cloudfront.net"
+          });
+
+          mockS3GetPage.mockReturnValueOnce({
+            bodyString: expectedFile,
+            contentType: "text/html"
+          });
+
+          const result = await handler(event);
+
+          const response = result as CloudFrontResultResponse;
+
+          expect(response.status).toEqual(200);
+          expect(mockS3GetPage).toHaveBeenCalledWith({
+            basePath: "",
+            bucketName: "my-bucket.s3.amazonaws.com",
+            buildId: "build-id",
+            file: expectedFile,
+            isData: false,
+            region: "us-east-1"
+          });
+        }
+      );
+
+      it.each`
+        path                         | expectedFile                    | expectedStatus
+        ${"/fallback/not-yet-built"} | ${"pages/fallback/[slug].html"} | ${200}
+        ${"/no-fallback/not-built"}  | ${"pages/404.html"}             | ${404}
+      `(
+        "serves page $expectedFile with S3 client for path $path",
+        async ({ path, expectedFile, expectedStatus }) => {
+          // If trailingSlash = true, append "/" to get the non-redirected path
+          if (trailingSlash && !path.endsWith("/")) {
+            path += "/";
+          }
+
+          const event = createCloudFrontEvent({
+            uri: path,
+            host: "mydistribution.cloudfront.net"
+          });
+
+          mockS3GetPage
+            .mockReturnValueOnce(undefined)
+            .mockReturnValueOnce({ bodyString: "Not Found" });
+
+          const result = await handler(event);
+
+          const response = result as CloudFrontResultResponse;
+
+          expect(response.status).toEqual(expectedStatus);
+          expect(mockS3GetPage).toHaveBeenNthCalledWith(2, {
+            basePath: "",
+            bucketName: "my-bucket.s3.amazonaws.com",
+            buildId: "build-id",
+            file: expectedFile,
+            isData: false,
+            region: "us-east-1"
+          });
+        }
+      );
+
+      it.each`
+        path
+        ${"/fallback/already-built"}
+        ${"/fallback/not-yet-built"}
+        ${"/preview"}
+      `(
+        `path $path redirects if it ${
+          trailingSlash ? "does not have" : "has"
+        } a trailing slash`,
+        async ({ path }) => {
+          let expectedRedirect;
+          if (trailingSlash) {
+            expectedRedirect = path + "/";
+          } else {
+            expectedRedirect = path;
+            path += "/";
+          }
+          await runRedirectTest(path, expectedRedirect, 308);
+        }
+      );
 
       it("handles preview mode", async () => {
         const event = createCloudFrontEvent({
@@ -265,36 +392,88 @@ describe("Lambda@Edge", () => {
         expect(response.status).toBe(200);
       });
 
-      it("HTML page without any props served from S3 on preview mode", async () => {
+      it("returns a correct cache control header when expiry is in the future", async () => {
         const event = createCloudFrontEvent({
-          uri: `/terms${trailingSlash ? "/" : ""}`,
-          host: "mydistribution.cloudfront.net",
-          requestHeaders: {
-            cookie: [
-              {
-                key: "Cookie",
-                value: `__next_preview_data=${previewToken}; __prerender_bypass=def`
-              }
-            ]
-          }
+          uri: `/preview${trailingSlash ? "/" : ""}`,
+          host: "mydistribution.cloudfront.net"
         });
 
-        const result = await handler(event);
-
-        const request = result as CloudFrontRequest;
-
-        expect(request.origin).toEqual({
-          s3: {
-            authMethod: "origin-access-identity",
-            domainName: "my-bucket.s3.amazonaws.com",
-            path: "/static-pages/build-id",
-            region: "us-east-1"
-          }
+        mockS3GetPage.mockReturnValueOnce({
+          bodyString: "SSG",
+          contentType: "application/json",
+          expires: new Date(new Date().getTime() + 3000)
         });
-        expect(request.uri).toEqual("/terms.html");
-        expect(request.headers.host[0].key).toEqual("host");
-        expect(request.headers.host[0].value).toEqual(
-          "my-bucket.s3.amazonaws.com"
+
+        const response = await handler(event);
+        expect(response.headers).toHaveProperty("cache-control");
+        expect(response.headers["cache-control"][0].value).toBe(
+          "public, max-age=0, s-maxage=3, must-revalidate"
+        );
+      });
+
+      it("returns a correct cache control header when expiry is in the past", async () => {
+        mockTriggerStaticRegeneration.mockReturnValueOnce(
+          Promise.resolve({ throttle: false })
+        );
+        const event = createCloudFrontEvent({
+          uri: `/preview${trailingSlash ? "/" : ""}`,
+          host: "mydistribution.cloudfront.net"
+        });
+
+        mockS3GetPage.mockReturnValueOnce({
+          bodyString: "SSG",
+          contentType: "application/json",
+          expires: new Date(new Date().getTime() - 3000)
+        });
+
+        const response = await handler(event);
+        expect(response.headers).toHaveProperty("cache-control");
+        expect(response.headers["cache-control"][0].value).toBe(
+          "public, max-age=0, s-maxage=0, must-revalidate"
+        );
+      });
+
+      it("returns a correct cache control header when a last-modified header is sent", async () => {
+        mockTriggerStaticRegeneration.mockReturnValueOnce(
+          Promise.resolve({ throttle: false })
+        );
+        const event = createCloudFrontEvent({
+          uri: `/preview${trailingSlash ? "/" : ""}`,
+          host: "mydistribution.cloudfront.net"
+        });
+
+        mockS3GetPage.mockReturnValueOnce({
+          bodyString: "SSG",
+          contentType: "application/json",
+          lastModified: new Date(new Date().getTime() - 3000)
+        });
+
+        const response = await handler(event);
+        expect(response.headers).toHaveProperty("cache-control");
+        expect(response.headers["cache-control"][0].value).toBe(
+          "public, max-age=0, s-maxage=2, must-revalidate"
+        );
+      });
+
+      it("returns a correct throttled cache header when 'throttle' value is returned true", async () => {
+        mockTriggerStaticRegeneration.mockReturnValueOnce(
+          Promise.resolve({ throttle: true })
+        );
+        const event = createCloudFrontEvent({
+          uri: `/preview${trailingSlash ? "/" : ""}`,
+          host: "mydistribution.cloudfront.net"
+        });
+
+        mockS3GetPage.mockReturnValueOnce({
+          bodyString: "SSG",
+          contentType: "application/json",
+          expires: new Date(new Date().getTime() - 3000)
+        });
+
+        const response = await handler(event);
+        expect(response.headers).toHaveProperty("cache-control");
+        expect(response.headers["cache-control"][0].value).toBe(
+          "public, max-age=0, s-maxage=1, must-revalidate"
         );
       });
     });
@@ -302,10 +481,10 @@ describe("Lambda@Edge", () => {
     describe("Public files routing", () => {
       it.each`
         path
-        ${"/manifest.json"}
+        ${"/favicon.ico"}
         ${"/file%20with%20spaces.json"}
       `(
-        "serves public file at path $path from S3 /public folder",
+        "serves public file at path $path from S3 origin /public folder",
         async ({ path }) => {
           const event = createCloudFrontEvent({
             uri: path,
@@ -328,20 +507,34 @@ describe("Lambda@Edge", () => {
         }
       );
 
-      it("public file should return 200 status after successful S3 Origin response", async () => {
-        const event = createCloudFrontEvent({
-          uri: "/manifest.json",
-          host: "mydistribution.cloudfront.net",
-          config: { eventType: "origin-response" } as any,
-          response: {
-            status: "200"
-          } as any
-        });
+      it.each`
+        path                | expectedFile
+        ${"/manifest.json"} | ${"/manifest.json"}
+      `(
+        "serves public file at path $path with S3 client and header",
+        async ({ path, expectedFile }) => {
+          const event = createCloudFrontEvent({
+            uri: path,
+            host: "mydistribution.cloudfront.net"
+          });
+          mockS3GetPage.mockReturnValueOnce({ bodyString: "manifest.json" });
 
-        const response = (await handler(event)) as CloudFrontResultResponse;
+          const result = await handler(event);
 
-        expect(response.status).toEqual("200");
-      });
+          const response = result as CloudFrontResultResponse;
+
+          expect(response.status).toEqual(200);
+          expect(mockS3GetPage).toHaveBeenCalledWith({
+            basePath: "",
+            bucketName: "my-bucket.s3.amazonaws.com",
+            buildId: "build-id",
+            file: expectedFile,
+            isData: undefined,
+            isPublicFile: true,
+            region: "us-east-1"
+          });
+        }
+      );
 
       it.each`
         path                 | expectedRedirect
@@ -353,6 +546,57 @@ describe("Lambda@Edge", () => {
           await runRedirectTest(path, expectedRedirect, 308);
         }
       );
+
+      it("uses default s3 endpoint when bucket region is us-east-1", async () => {
+        const event = createCloudFrontEvent({
+          uri: "/favicon.ico",
+          host: "mydistribution.cloudfront.net",
+          s3Region: "us-east-1"
+        });
+
+        const result = await handler(event);
+
+        const request = result as CloudFrontRequest;
+        const origin = request.origin as CloudFrontOrigin;
+
+        expect(origin.s3).toEqual(
+          expect.objectContaining({
+            domainName: "my-bucket.s3.amazonaws.com"
+          })
+        );
+        expect(request.headers.host[0].key).toEqual("host");
+        expect(request.headers.host[0].value).toEqual(
+          "my-bucket.s3.amazonaws.com"
+        );
+      });
+
+      it("uses regional endpoint for static page when bucket region is not us-east-1", async () => {
+        const event = createCloudFrontEvent({
+          uri: "/favicon.ico",
+          host: "mydistribution.cloudfront.net",
+          s3DomainName: "my-bucket.s3.amazonaws.com",
+          s3Region: "eu-west-1"
+        });
+
+        const result = await handler(event);
+
+        const request = result as CloudFrontRequest;
+        const origin = request.origin as CloudFrontOrigin;
+
+        expect(origin).toEqual({
+          s3: {
+            authMethod: "origin-access-identity",
+            domainName: "my-bucket.s3.eu-west-1.amazonaws.com",
+            path: "/public",
+            region: "eu-west-1"
+          }
+        });
+        expect(request.uri).toEqual("/favicon.ico");
+        expect(request.headers.host[0].key).toEqual("host");
+        expect(request.headers.host[0].value).toEqual(
+          "my-bucket.s3.eu-west-1.amazonaws.com"
+        );
+      });
     });
 
     describe("SSR pages routing", () => {
@@ -479,186 +723,40 @@ describe("Lambda@Edge", () => {
       );
 
       it.each`
-        path                                                  | expectedUri
+        path                                                  | expectedFile
         ${"/_next/data/build-id"}                             | ${"/_next/data/build-id/index.json"}
         ${"/_next/data/build-id/index.json"}                  | ${"/_next/data/build-id/index.json"}
+        ${"/_next/data/build-id/preview.json"}                | ${"/_next/data/build-id/preview.json"}
         ${"/_next/data/build-id/fallback/not-yet-built.json"} | ${"/_next/data/build-id/fallback/not-yet-built.json"}
       `(
-        "serves json data via S3 for SSG path $path",
-        async ({ path, expectedUri }) => {
+        "serves json data with S3 client for SSG path $path",
+        async ({ path, expectedFile }) => {
           const event = createCloudFrontEvent({
             uri: path,
             host: "mydistribution.cloudfront.net",
             config: { eventType: "origin-request" } as any
           });
 
+          mockS3GetPage.mockReturnValueOnce({
+            bodyString: expectedFile,
+            contentType: "application/json"
+          });
+
           const result = await handler(event);
 
-          const request = result as CloudFrontRequest;
+          const response = result as CloudFrontResultResponse;
 
-          expect(request.origin).toEqual({
-            s3: {
-              authMethod: "origin-access-identity",
-              domainName: "my-bucket.s3.amazonaws.com",
-              path: "",
-              region: "us-east-1"
-            }
+          expect(response.status).toEqual(200);
+          expect(mockS3GetPage).toHaveBeenCalledWith({
+            basePath: "",
+            bucketName: "my-bucket.s3.amazonaws.com",
+            buildId: "build-id",
+            file: expectedFile,
+            isData: true,
+            region: "us-east-1"
           });
-          expect(request.uri).toEqual(expectedUri);
         }
       );
-
-      it("correctly removes the expires header if set in the response for an ssg page", async () => {
-        mockTriggerStaticRegeneration.mockReturnValueOnce(
-          Promise.resolve({ throttle: false })
-        );
-
-        const event = createCloudFrontEvent({
-          uri: "/preview",
-          host: "mydistribution.cloudfront.net",
-          config: { eventType: "origin-response" } as any,
-          response: {
-            status: "200",
-            statusDescription: "ok",
-            headers: {
-              expires: [
-                {
-                  value: new Date().toJSON(),
-                  key: "Expires"
-                }
-              ]
-            }
-          }
-        });
-
-        const response = await handler(event);
-        expect(mockTriggerStaticRegeneration).toBeCalledTimes(1);
-        expect(mockTriggerStaticRegeneration.mock.calls[0][0]).toEqual(
-          expect.objectContaining({
-            basePath: "",
-            pagePath: "pages/preview.js",
-            request: expect.objectContaining({
-              uri: `/preview${trailingSlash ? "/" : ""}`
-            })
-          })
-        );
-
-        expect(response.headers).not.toHaveProperty("expires");
-        expect(response.headers).not.toHaveProperty("Expires");
-      });
-
-      it("returns a correct cache control header when an expiry header in the future is sent", async () => {
-        const event = createCloudFrontEvent({
-          uri: "/customers",
-          host: "mydistribution.cloudfront.net",
-          config: { eventType: "origin-response" } as any,
-          response: {
-            status: "200",
-            statusDescription: "ok",
-            headers: {
-              expires: [
-                {
-                  value: new Date(new Date().getTime() + 3000).toJSON(),
-                  key: "Expires"
-                }
-              ]
-            }
-          }
-        });
-
-        const response = await handler(event);
-        expect(response.headers).toHaveProperty("cache-control");
-        expect(response.headers["cache-control"][0].value).toBe(
-          "public, max-age=0, s-maxage=3, must-revalidate"
-        );
-      });
-
-      it("returns a correct cache control header when an expiry header in the past is sent", async () => {
-        mockTriggerStaticRegeneration.mockReturnValueOnce(
-          Promise.resolve({ throttle: false })
-        );
-        const event = createCloudFrontEvent({
-          uri: "/customers",
-          host: "mydistribution.cloudfront.net",
-          config: { eventType: "origin-response" } as any,
-          response: {
-            status: "200",
-            statusDescription: "ok",
-            headers: {
-              expires: [
-                {
-                  value: new Date(new Date().getTime() - 3000).toJSON(),
-                  key: "Expires"
-                }
-              ]
-            }
-          }
-        });
-
-        const response = await handler(event);
-        expect(response.headers).toHaveProperty("cache-control");
-        expect(response.headers["cache-control"][0].value).toBe(
-          "public, max-age=0, s-maxage=0, must-revalidate"
-        );
-      });
-
-      it("returns a correct cache control header when a last-modified header is sent", async () => {
-        mockTriggerStaticRegeneration.mockReturnValueOnce(
-          Promise.resolve({ throttle: false })
-        );
-        const event = createCloudFrontEvent({
-          uri: "/preview",
-          host: "mydistribution.cloudfront.net",
-          config: { eventType: "origin-response" } as any,
-          response: {
-            status: "200",
-            statusDescription: "ok",
-            headers: {
-              ["last-modified"]: [
-                {
-                  value: new Date(new Date().getTime() - 3000).toJSON(),
-                  key: "Last-Modified"
-                }
-              ]
-            }
-          }
-        });
-
-        const response = await handler(event);
-        expect(response.headers).toHaveProperty("cache-control");
-        expect(response.headers["cache-control"][0].value).toBe(
-          "public, max-age=0, s-maxage=2, must-revalidate"
-        );
-      });
-
-      it("returns a correct throttled cache header when 'throttle' value is returned true", async () => {
-        mockTriggerStaticRegeneration.mockReturnValueOnce(
-          Promise.resolve({ throttle: true })
-        );
-        const event = createCloudFrontEvent({
-          uri: "/preview",
-          host: "mydistribution.cloudfront.net",
-          config: { eventType: "origin-response" } as any,
-          response: {
-            status: "200",
-            statusDescription: "ok",
-            headers: {
-              expires: [
-                {
-                  key: "Expires",
-                  value: new Date().toJSON()
-                }
-              ]
-            }
-          }
-        });
-
-        const response = await handler(event);
-        expect(response.headers).toHaveProperty("cache-control");
-        expect(response.headers["cache-control"][0].value).toBe(
-          "public, max-age=0, s-maxage=1, must-revalidate"
-        );
-      });
 
       it.each`
         path                                                       | expectedRedirect
@@ -704,85 +802,6 @@ describe("Lambda@Edge", () => {
       });
     });
 
-    it("uses default s3 endpoint when bucket region is us-east-1", async () => {
-      const event = createCloudFrontEvent({
-        uri: trailingSlash ? "/terms/" : "/terms",
-        host: "mydistribution.cloudfront.net",
-        s3Region: "us-east-1"
-      });
-
-      const result = await handler(event);
-
-      const request = result as CloudFrontRequest;
-      const origin = request.origin as CloudFrontOrigin;
-
-      expect(origin.s3).toEqual(
-        expect.objectContaining({
-          domainName: "my-bucket.s3.amazonaws.com"
-        })
-      );
-      expect(request.headers.host[0].key).toEqual("host");
-      expect(request.headers.host[0].value).toEqual(
-        "my-bucket.s3.amazonaws.com"
-      );
-    });
-
-    it("uses regional endpoint for static page when bucket region is not us-east-1", async () => {
-      const event = createCloudFrontEvent({
-        uri: trailingSlash ? "/terms/" : "/terms",
-        host: "mydistribution.cloudfront.net",
-        s3DomainName: "my-bucket.s3.amazonaws.com",
-        s3Region: "eu-west-1"
-      });
-
-      const result = await handler(event);
-
-      const request = result as CloudFrontRequest;
-      const origin = request.origin as CloudFrontOrigin;
-
-      expect(origin).toEqual({
-        s3: {
-          authMethod: "origin-access-identity",
-          domainName: "my-bucket.s3.eu-west-1.amazonaws.com",
-          path: "/static-pages/build-id",
-          region: "eu-west-1"
-        }
-      });
-      expect(request.uri).toEqual("/terms.html");
-      expect(request.headers.host[0].key).toEqual("host");
-      expect(request.headers.host[0].value).toEqual(
-        "my-bucket.s3.eu-west-1.amazonaws.com"
-      );
-    });
-
-    it("uses regional endpoint for public asset when bucket region is not us-east-1", async () => {
-      const event = createCloudFrontEvent({
-        uri: "/favicon.ico",
-        host: "mydistribution.cloudfront.net",
-        s3DomainName: "my-bucket.s3.amazonaws.com",
-        s3Region: "eu-west-1"
-      });
-
-      const result = await handler(event);
-
-      const request = result as CloudFrontRequest;
-      const origin = request.origin as CloudFrontOrigin;
-
-      expect(origin).toEqual({
-        s3: {
-          authMethod: "origin-access-identity",
-          domainName: "my-bucket.s3.eu-west-1.amazonaws.com",
-          path: "/public",
-          region: "eu-west-1"
-        }
-      });
-      expect(request.uri).toEqual("/favicon.ico");
-      expect(request.headers.host[0].key).toEqual("host");
-      expect(request.headers.host[0].value).toEqual(
-        "my-bucket.s3.eu-west-1.amazonaws.com"
-      );
-    });
-
     describe("404 page", () => {
       it("returns 404 page if request path can't be matched to any page / api routes", async () => {
         const event = createCloudFrontEvent({
@@ -790,8 +809,12 @@ describe("Lambda@Edge", () => {
           host: "mydistribution.cloudfront.net"
         });
 
-        const request = (await handler(event)) as CloudFrontRequest;
-        expect(request.uri).toEqual("/404.html");
+        mockS3GetPage.mockReturnValueOnce({
+          bodyString: "Not Found"
+        });
+
+        const response = (await handler(event)) as CloudFrontResultResponse;
+        expect(response.status).toEqual(404);
       });
 
       it("redirects unmatched request path", async () => {
@@ -822,40 +845,14 @@ describe("Lambda@Edge", () => {
             config: { eventType: "origin-request" } as any
           });
 
-          const request = (await handler(event)) as CloudFrontRequest;
-          expect(request.uri).toEqual("/404.html");
+          mockS3GetPage.mockReturnValueOnce({
+            bodyString: "Not Found"
+          });
+
+          const response = (await handler(event)) as CloudFrontResultResponse;
+          expect(response.status).toEqual(404);
         }
       );
-
-      it("404.html should return 404 status after successful S3 Origin response", async () => {
-        const event = createCloudFrontEvent({
-          uri: "/404.html",
-          host: "mydistribution.cloudfront.net",
-          config: { eventType: "origin-response" } as any,
-          response: {
-            status: "200"
-          } as any
-        });
-
-        const response = (await handler(event)) as CloudFrontResultResponse;
-
-        expect(response.status).toEqual("404");
-      });
-
-      it("path ending 404 should return 200 status after successful S3 Origin response", async () => {
-        const event = createCloudFrontEvent({
-          uri: "/fallback/404.html",
-          host: "mydistribution.cloudfront.net",
-          config: { eventType: "origin-response" } as any,
-          response: {
-            status: "200"
-          } as any
-        });
-
-        const response = (await handler(event)) as CloudFrontResultResponse;
-
-        expect(response.status).toEqual("200");
-      });
     });
 
     describe("500 page", () => {
@@ -874,21 +871,6 @@ describe("Lambda@Edge", () => {
 
         expect(decodedBody).toEqual("pages/_error.js - 500");
         expect(response.status).toEqual(500);
-      });
-
-      it("path ending 500 should return 200 status after successful S3 Origin response", async () => {
-        const event = createCloudFrontEvent({
-          uri: "/fallback/500.html",
-          host: "mydistribution.cloudfront.net",
-          config: { eventType: "origin-response" } as any,
-          response: {
-            status: "200"
-          } as any
-        });
-
-        const response = (await handler(event)) as CloudFrontResultResponse;
-
-        expect(response.status).toEqual("200");
       });
     });
 
@@ -967,13 +949,13 @@ describe("Lambda@Edge", () => {
 
     describe("Custom Rewrites", () => {
       it.each`
-        uri                                | expectedPage     | expectedQuerystring
-        ${"/index-rewrite"}                | ${"/index.html"} | ${""}
-        ${"/terms-rewrite"}                | ${"/terms.html"} | ${""}
-        ${"/path-rewrite/123"}             | ${"/terms.html"} | ${"slug=123"}
-        ${"/terms"}                        | ${"/terms.html"} | ${""}
-        ${"/terms-rewrite-dest-query"}     | ${"/terms.html"} | ${"foo=bar"}
-        ${"/terms-rewrite-dest-query?a=b"} | ${"/terms.html"} | ${"a=b&foo=bar"}
+        uri                                | expectedPage          | expectedQuerystring
+        ${"/index-rewrite"}                | ${"pages/index.html"} | ${""}
+        ${"/terms-rewrite"}                | ${"pages/terms.html"} | ${""}
+        ${"/path-rewrite/123"}             | ${"pages/terms.html"} | ${"slug=123"}
+        ${"/terms"}                        | ${"pages/terms.html"} | ${""}
+        ${"/terms-rewrite-dest-query"}     | ${"pages/terms.html"} | ${"foo=bar"}
+        ${"/terms-rewrite-dest-query?a=b"} | ${"pages/terms.html"} | ${"a=b&foo=bar"}
       `(
         "serves page $expectedPage from S3 for rewritten path $uri",
         async ({ uri, expectedPage, expectedQuerystring }) => {
@@ -990,24 +972,24 @@ describe("Lambda@Edge", () => {
             host: "mydistribution.cloudfront.net"
           });
 
+          mockS3GetPage.mockReturnValueOnce({
+            bodyString: expectedPage,
+            contentType: "application/json"
+          });
+
           const result = await handler(event);
 
-          const request = result as CloudFrontRequest;
+          const response = result as CloudFrontResultResponse;
 
-          expect(request.origin).toEqual({
-            s3: {
-              authMethod: "origin-access-identity",
-              domainName: "my-bucket.s3.amazonaws.com",
-              path: "/static-pages/build-id",
-              region: "us-east-1"
-            }
+          expect(response.status).toEqual(200);
+          expect(mockS3GetPage).toHaveBeenCalledWith({
+            basePath: "",
+            bucketName: "my-bucket.s3.amazonaws.com",
+            buildId: "build-id",
+            file: expectedPage,
+            isData: false,
+            region: "us-east-1"
           });
-          expect(request.uri).toEqual(expectedPage);
-          expect(request.querystring).toEqual(expectedQuerystring);
-          expect(request.headers.host[0].key).toEqual("host");
-          expect(request.headers.host[0].value).toEqual(
-            "my-bucket.s3.amazonaws.com"
-          );
         }
       );
 

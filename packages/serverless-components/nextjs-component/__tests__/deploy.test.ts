@@ -310,8 +310,6 @@ describe.each`
           maxTTL: 31536000,
           "lambda@edge": {
             "origin-request":
-              "arn:aws:lambda:us-east-1:123456789012:function:default-cachebehavior-func:v1",
-            "origin-response":
               "arn:aws:lambda:us-east-1:123456789012:function:default-cachebehavior-func:v1"
           },
           compress: true
@@ -338,8 +336,6 @@ describe.each`
                 allowedHttpMethods: ["HEAD", "GET"],
                 "lambda@edge": {
                   "origin-request":
-                    "arn:aws:lambda:us-east-1:123456789012:function:default-cachebehavior-func:v1",
-                  "origin-response":
                     "arn:aws:lambda:us-east-1:123456789012:function:default-cachebehavior-func:v1"
                 }
               },

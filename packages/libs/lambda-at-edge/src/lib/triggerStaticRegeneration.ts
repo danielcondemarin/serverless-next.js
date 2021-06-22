@@ -2,11 +2,12 @@ import { s3BucketNameFromEventRequest } from "../s3/s3BucketNameFromEventRequest
 import { buildS3RetryStrategy } from "../s3/s3RetryStrategy";
 import { RegenerationEvent } from "../types";
 
-interface TriggerStaticRegenerationOptions {
+export interface TriggerStaticRegenerationOptions {
   request: AWSLambda.CloudFrontRequest;
-  response: AWSLambda.CloudFrontResponse;
   basePath: string | undefined;
   pagePath: string;
+  etag?: string;
+  lastModified?: Date;
 }
 
 export const triggerStaticRegeneration = async (
@@ -47,10 +48,7 @@ export const triggerStaticRegeneration = async (
         // update. This will prevent the case where this page is being
         // requested again whilst its already started to regenerate.
         MessageDeduplicationId:
-          options.response.headers["etag"]?.[0].value ||
-          new Date(options.response.headers["last-modified"]?.[0].value)
-            .getTime()
-            .toString(),
+          options.etag || options.lastModified?.getTime()?.toString(),
         // Only deduplicate based on the object, i.e. we can generate
         // different pages in parallel, just not the same one
         MessageGroupId: options.request.uri

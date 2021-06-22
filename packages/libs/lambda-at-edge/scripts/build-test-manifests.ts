@@ -22,6 +22,10 @@ headers: async () => [
   {
     source: "/customers/another",
     headers: [{key: "x-custom-header", value: "custom"}]
+  },
+  {
+    source: "/manifest.json",
+    headers: [{key: "x-custom-header", value: "public-file"}]
   }
 ]
 `;

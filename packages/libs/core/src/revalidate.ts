@@ -1,7 +1,6 @@
 interface StaticRegenerationResponseOptions {
-  // Header as set on the origin object
-  expiresHeader: string;
-  lastModifiedHeader: string | undefined;
+  expires?: Date;
+  lastModified?: Date;
   initialRevalidateSeconds?: false | number;
 }
 
@@ -12,12 +11,10 @@ interface StaticRegenerationResponseValue {
 }
 
 const firstRegenerateExpiryDate = (
-  lastModifiedHeader: string,
+  lastModified: Date,
   initialRevalidateSeconds: number
 ) => {
-  return new Date(
-    new Date(lastModifiedHeader).getTime() + initialRevalidateSeconds * 1000
-  );
+  return new Date(lastModified.getTime() + initialRevalidateSeconds * 1000);
 };
 
 /**
@@ -36,18 +33,16 @@ export const getStaticRegenerationResponse = (
   // property will not have an `Expires` header and therefore we check using the
   // manifest.
   if (
-    !options.expiresHeader &&
-    !(
-      options.lastModifiedHeader && typeof initialRevalidateSeconds === "number"
-    )
+    !options.expires &&
+    !(options.lastModified && typeof initialRevalidateSeconds === "number")
   ) {
     return false;
   }
 
-  const expiresAt = options.expiresHeader
-    ? new Date(options.expiresHeader)
+  const expiresAt = options.expires
+    ? options.expires
     : firstRegenerateExpiryDate(
-        options.lastModifiedHeader as string,
+        options.lastModified as Date,
         initialRevalidateSeconds as number
       );
 

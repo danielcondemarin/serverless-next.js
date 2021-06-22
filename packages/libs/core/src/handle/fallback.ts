@@ -1,6 +1,7 @@
 import { renderErrorPage } from "./error";
 import { renderRoute } from "./default";
 import { setCustomHeaders } from "./headers";
+import { Fallback, FallbackRoute } from "./types";
 import {
   Event,
   PageManifest,
@@ -10,18 +11,6 @@ import {
   StaticRoute
 } from "../types";
 import { notFoundPage } from "../route/notfound";
-
-type FallbackRoute = StaticRoute & {
-  fallback: string | null;
-  page: string;
-};
-
-type Fallback = {
-  isStatic: false;
-  route: FallbackRoute;
-  html: string;
-  renderOpts: any;
-};
 
 const renderFallback = async (
   event: Event,

@@ -44,6 +44,16 @@
         }
       ],
       "regex": "^/customers/another$"
+    },
+    {
+      "source": "/manifest.json",
+      "headers": [
+        {
+          "key": "x-custom-header",
+          "value": "public-file"
+        }
+      ],
+      "regex": "^/manifest\\.json$"
     }
   ],
   "dynamicRoutes": [

@@ -1,4 +1,7 @@
-import { triggerStaticRegeneration } from "../../src/lib/triggerStaticRegeneration";
+import {
+  triggerStaticRegeneration,
+  TriggerStaticRegenerationOptions
+} from "../../src/lib/triggerStaticRegeneration";
 
 describe("triggerStaticRegeneration()", () => {
   const mockSQSClient = jest.fn();
@@ -12,7 +15,7 @@ describe("triggerStaticRegeneration()", () => {
     }));
   });
 
-  const options = {
+  const options: TriggerStaticRegenerationOptions = {
     basePath: "",
     request: {
       uri: "index.html",
@@ -23,11 +26,8 @@ describe("triggerStaticRegeneration()", () => {
         }
       }
     } as AWSLambda.CloudFrontRequest,
-    response: {
-      headers: { etag: [{ key: "Etag", value: "123" }] },
-      status: "200",
-      statusDescription: "ok"
-    } as AWSLambda.CloudFrontResponse
+    etag: "123",
+    pagePath: "pages/index.js"
   };
 
   class RequestThrottledException extends Error {
@@ -97,13 +97,8 @@ describe("triggerStaticRegeneration()", () => {
       mockSQSClient.mockImplementationOnce(() => ({ send: jest.fn() }));
       const staticRegeneratedResponse = await triggerStaticRegeneration({
         ...options,
-        response: {
-          ...options.response,
-          headers: {
-            ["last-modified"]: [{ key: "Last-Modified", value: lastModified }],
-            ["etag"]: [{ key: "etag", value: etag }]
-          }
-        }
+        etag,
+        lastModified: new Date(lastModified)
       });
       expect(staticRegeneratedResponse.throttle).toBe(false);
       expect(mockSendMessageCommand).toHaveBeenCalledWith({
@@ -112,7 +107,8 @@ describe("triggerStaticRegeneration()", () => {
           region: "us-east-1",
           bucketName: "my-bucket",
           cloudFrontEventRequest: options.request,
-          basePath: ""
+          basePath: "",
+          pagePath: "pages/index.js"
         }),
         MessageDeduplicationId: expected,
         MessageGroupId: "index.html"
