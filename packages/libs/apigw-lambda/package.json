@@ -1,0 +1,67 @@
+{
+  "name": "@sls-next/apigw-lambda",
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "1.0.0-alpha.1",
+  "description": "Provides handlers for next.js in AWS API Gateway",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "build-apigw-lambda": "dist/command.js"
+  },
+  "scripts": {
+    "prepare": "yarn build",
+    "clean": "ts-node scripts/clean-dist.ts",
+    "build-test-manifests": "ts-node scripts/build-test-manifests.ts",
+    "build": "rollup --config && tsc -p tsconfig.build.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/serverless-nextjs/serverless-next.js.git",
+    "directory": "packages/libs/apigw-lambda"
+  },
+  "keywords": [
+    "AWS",
+    "Lambda@Edge",
+    "Next.js"
+  ],
+  "author": "Jan Varho <jan.varho@gmail.com> et al",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/serverless-nextjs/serverless-next.js/issues"
+  },
+  "homepage": "https://github.com/serverless-nextjs/serverless-next.js#readme",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^15.0.0",
+    "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-node-resolve": "^9.0.0",
+    "@types/aws-lambda": "^8.10.76",
+    "@types/execa": "^2.0.0",
+    "@types/fs-extra": "^9.0.1",
+    "@types/klaw": "^3.0.1",
+    "@types/node": "^14.0.14",
+    "@types/node-fetch": "^2.5.7",
+    "fetch-mock-jest": "^1.5.1",
+    "rollup": "^2.46.0",
+    "rollup-plugin-delete": "^2.0.0",
+    "rollup-plugin-node-externals": "^2.2.0",
+    "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-typescript2": "^0.30.0",
+    "ts-loader": "^7.0.5",
+    "ts-node": "^10.0.0",
+    "typescript": "^4.2.4"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "3.14.0",
+    "@sls-next/core": "link:../core",
+    "execa": "^4.0.2",
+    "fs-extra": "^9.0.1",
+    "get-stream": "^6.0.0",
+    "klaw": "^3.0.0",
+    "node-fetch": "^2.6.1"
+  }
+}

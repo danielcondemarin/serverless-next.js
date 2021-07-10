@@ -1,0 +1,17 @@
+{
+    "/catchall/[...slug]": "pages/catchall/[...slug].js",
+    "/fallback-blocking/[slug]": "pages/fallback-blocking/[slug].js",
+    "/fallback/[slug]": "pages/fallback/[slug].js",
+    "/": "pages/index.js",
+    "/no-fallback/[slug]": "pages/no-fallback/[slug].js",
+    "/optional-catchall/[[...slug]]": "pages/optional-catchall/[[...slug]].js",
+    "/ssg": "pages/ssg.js",
+    "/ssr": "pages/ssr.js",
+    "/_error": "pages/_error.js",
+    "/en/404": "pages/en/404.html",
+    "/nl/404": "pages/nl/404.html",
+    "/en/500": "pages/en/500.html",
+    "/nl/500": "pages/nl/500.html",
+    "/en/static": "pages/en/static.html",
+    "/nl/static": "pages/nl/static.html"
+}

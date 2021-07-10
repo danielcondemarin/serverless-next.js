@@ -1,5 +1,4 @@
 import { setCustomHeaders } from "./headers";
-import { notFound } from "./notfound";
 import { redirect } from "./redirect";
 import { toRequest } from "./request";
 import { routeApi } from "../route";
@@ -27,11 +26,12 @@ export const handleApi = async (
   manifest: ApiManifest,
   routesManifest: RoutesManifest,
   getPage: (page: string) => any
-): Promise<ExternalRoute | void> => {
+): Promise<ExternalRoute | boolean> => {
   const request = toRequest(event);
   const route = routeApi(request, manifest, routesManifest);
+
   if (!route) {
-    return notFound(event);
+    return false;
   }
   if (route.querystring) {
     event.req.url = `${event.req.url}${request.querystring ? "&" : "?"}${
@@ -42,13 +42,15 @@ export const handleApi = async (
     const { page } = route as ApiRoute;
     setCustomHeaders(event, routesManifest);
     getPage(page).default(event.req, event.res);
-    return;
+    return true;
   }
   if (route.isRedirect) {
-    return redirect(event, route as RedirectRoute);
+    redirect(event, route as RedirectRoute);
+    return true;
   }
   if (route.isUnauthorized) {
-    return unauthorized(event, route as UnauthorizedRoute);
+    unauthorized(event, route as UnauthorizedRoute);
+    return true;
   }
   // No if lets typescript check this is ExternalRoute
   return route;

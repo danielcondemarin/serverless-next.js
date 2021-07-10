@@ -1,0 +1,26 @@
+{
+  "version": 3,
+  "routes": {
+    "/en": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": null,
+      "dataRoute": "/_next/data/test-build-id/en.json"
+    },
+    "/nl": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": null,
+      "dataRoute": "/_next/data/test-build-id/nl.json"
+    },
+    "/en/contact": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": null,
+      "dataRoute": "/_next/data/test-build-id/en/contact.json"
+    },
+    "/nl/contact": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": null,
+      "dataRoute": "/_next/data/test-build-id/nl/contact.json"
+    }
+  },
+  "dynamicRoutes": {}
+}

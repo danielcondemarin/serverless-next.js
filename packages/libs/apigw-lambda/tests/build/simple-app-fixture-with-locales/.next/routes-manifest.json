@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "pages404": true,
+  "basePath": "",
+  "redirects": [],
+  "rewrites": [],
+  "headers": [],
+  "dynamicRoutes": [],
+  "i18n": {
+    "locales": ["en", "nl"],
+    "defaultLocale": "en"
+  }
+}

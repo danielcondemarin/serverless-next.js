@@ -125,7 +125,7 @@ describe("Api handler", () => {
         getPage
       );
 
-      expect(route).toBeFalsy();
+      expect(route).toBe(true);
       expect(getPage).toHaveBeenCalledWith(page);
     });
 
@@ -134,12 +134,11 @@ describe("Api handler", () => {
       ${"/api/notfound"}
       ${"/api/dynamic/not/found"}
       ${"/rewrite-not-found"}
-    `("Returns 404 for $uri", async ({ uri }) => {
+    `("Returns false for not-found $uri", async ({ uri }) => {
       const event = mockEvent(uri);
       const route = await handleApi(event, manifest, routesManifest, getPage);
 
       expect(route).toBeFalsy();
-      expect(event.res.statusCode).toEqual(404);
     });
   });
 
@@ -171,12 +170,9 @@ describe("Api handler", () => {
         const event = mockEvent(uri);
         const route = await handleApi(event, manifest, routesManifest, getPage);
 
-        expect(route).toBeFalsy();
+        expect(route).toBe(true);
         expect(event.res.statusCode).toEqual(code);
-        expect(event.res.setHeader).toHaveBeenCalledWith(
-          "Location",
-          destination
-        );
+        expect(event.res.setHeader).toHaveBeenCalledWith("Location", destination);
         expect(event.res.end).toHaveBeenCalled();
       }
     );
@@ -192,12 +188,9 @@ describe("Api handler", () => {
         const event = mockEvent(uri, { Host: "www.example.com" });
         const route = await handleApi(event, manifest, routesManifest, getPage);
 
-        expect(route).toBeFalsy();
+        expect(route).toBe(true);
         expect(event.res.statusCode).toEqual(code);
-        expect(event.res.setHeader).toHaveBeenCalledWith(
-          "Location",
-          destination
-        );
+        expect(event.res.setHeader).toHaveBeenCalledWith("Location", destination);
         expect(event.res.end).toHaveBeenCalled();
       }
     );

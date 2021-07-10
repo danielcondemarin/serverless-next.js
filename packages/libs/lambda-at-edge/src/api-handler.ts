@@ -10,7 +10,7 @@ import {
 } from "./types";
 import { CloudFrontResultResponse } from "aws-lambda";
 import { createExternalRewriteResponse } from "./routing/rewriter";
-import { handleApi } from "@sls-next/core";
+import { ExternalRoute, handleApi, notFound } from "@sls-next/core";
 import { removeBlacklistedHeaders } from "./headers/removeBlacklistedHeaders";
 
 export const handler = async (
@@ -23,14 +23,17 @@ export const handler = async (
     enableHTTPCompression: buildManifest.enableHTTPCompression
   });
 
-  const external = await handleApi(
+  const route = await handleApi(
     { req, res, responsePromise },
     buildManifest,
     routesManifest,
     (pagePath: string) => require(`./${pagePath}`)
   );
 
-  if (external) {
+  if (!route) {
+    notFound({ req, res, responsePromise });
+  } else if (route !== true) {
+    const external: ExternalRoute = route;
     const { path } = external;
     await createExternalRewriteResponse(path, req, res, request.body?.data);
   }

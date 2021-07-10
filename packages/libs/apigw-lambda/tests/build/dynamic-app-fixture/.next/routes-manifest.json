@@ -1,0 +1,120 @@
+{
+    "version": 3,
+    "pages404": true,
+    "basePath": "",
+    "redirects": [
+        {
+            "source": "/:path+/",
+            "destination": "/:path+",
+            "locale": false,
+            "internal": true,
+            "statusCode": 308,
+            "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+        }
+    ],
+    "headers": [],
+    "dynamicRoutes": [
+        {
+            "page": "/catchall/[...slug]",
+            "regex": "^/catchall/(.+?)(?:/)?$",
+            "routeKeys": {
+                "slug": "slug"
+            },
+            "namedRegex": "^/catchall/(?<slug>.+?)(?:/)?$"
+        },
+        {
+            "page": "/fallback/[slug]",
+            "regex": "^/fallback/([^/]+?)(?:/)?$",
+            "routeKeys": {
+                "slug": "slug"
+            },
+            "namedRegex": "^/fallback/(?<slug>[^/]+?)(?:/)?$"
+        },
+        {
+            "page": "/fallback-blocking/[slug]",
+            "regex": "^/fallback\\-blocking/([^/]+?)(?:/)?$",
+            "routeKeys": {
+                "slug": "slug"
+            },
+            "namedRegex": "^/fallback\\-blocking/(?<slug>[^/]+?)(?:/)?$"
+        },
+        {
+            "page": "/no-fallback/[slug]",
+            "regex": "^/no\\-fallback/([^/]+?)(?:/)?$",
+            "routeKeys": {
+                "slug": "slug"
+            },
+            "namedRegex": "^/no\\-fallback/(?<slug>[^/]+?)(?:/)?$"
+        },
+        {
+            "page": "/optional-catchall/[[...slug]]",
+            "regex": "^/optional\\-catchall(?:/(.+?))?(?:/)?$",
+            "routeKeys": {
+                "slug": "slug"
+            },
+            "namedRegex": "^/optional\\-catchall(?:/(?<slug>.+?))?(?:/)?$"
+        }
+    ],
+    "dataRoutes": [
+        {
+            "page": "/",
+            "dataRouteRegex": "^/_next/data/test-build-id/index.json$"
+        },
+        {
+            "page": "/catchall/[...slug]",
+            "routeKeys": {
+                "slug": "slug"
+            },
+            "dataRouteRegex": "^/_next/data/test-build-id/catchall/(.+?)\\.json$",
+            "namedDataRouteRegex": "^/_next/data/test-build-id/catchall/(?<slug>.+?)\\.json$"
+        },
+        {
+            "page": "/fallback/[slug]",
+            "routeKeys": {
+                "slug": "slug"
+            },
+            "dataRouteRegex": "^/_next/data/test-build-id/fallback/([^/]+?)\\.json$",
+            "namedDataRouteRegex": "^/_next/data/test-build-id/fallback/(?<slug>[^/]+?)\\.json$"
+        },
+        {
+            "page": "/fallback-blocking/[slug]",
+            "routeKeys": {
+                "slug": "slug"
+            },
+            "dataRouteRegex": "^/_next/data/test-build-id/fallback\\-blocking/([^/]+?)\\.json$",
+            "namedDataRouteRegex": "^/_next/data/test-build-id/fallback\\-blocking/(?<slug>[^/]+?)\\.json$"
+        },
+        {
+            "page": "/no-fallback/[slug]",
+            "routeKeys": {
+                "slug": "slug"
+            },
+            "dataRouteRegex": "^/_next/data/test-build-id/no\\-fallback/([^/]+?)\\.json$",
+            "namedDataRouteRegex": "^/_next/data/test-build-id/no\\-fallback/(?<slug>[^/]+?)\\.json$"
+        },
+        {
+            "page": "/optional-catchall/[[...slug]]",
+            "routeKeys": {
+                "slug": "slug"
+            },
+            "dataRouteRegex": "^/_next/data/test-build-id/optional\\-catchall(?:/(.+?))?\\.json$",
+            "namedDataRouteRegex": "^/_next/data/test-build-id/optional\\-catchall(?:/(?<slug>.+?))?\\.json$"
+        },
+        {
+            "page": "/ssg",
+            "dataRouteRegex": "^/_next/data/test-build-id/ssg.json$"
+        },
+        {
+            "page": "/ssr",
+            "dataRouteRegex": "^/_next/data/test-build-id/ssr.json$"
+        }
+    ],
+    "i18n": {
+        "defaultLocale": "en",
+        "locales": [
+            "en",
+            "nl"
+        ]
+    },
+    "rewrites": []
+}

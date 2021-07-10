@@ -1,0 +1,66 @@
+{
+    "version": 3,
+    "routes": {
+        "/en/no-fallback/a": {
+            "initialRevalidateSeconds": 60,
+            "srcRoute": "/no-fallback/[slug]",
+            "dataRoute": "/_next/data/test-build-id/en/no-fallback/a.json"
+        },
+        "/en/fallback/a": {
+            "initialRevalidateSeconds": false,
+            "srcRoute": "/fallback/[slug]",
+            "dataRoute": "/_next/data/test-build-id/en/fallback/a.json"
+        },
+        "/en/ssg": {
+            "initialRevalidateSeconds": 60,
+            "srcRoute": null,
+            "dataRoute": "/_next/data/test-build-id/ssg.json"
+        },
+        "/nl/ssg": {
+            "initialRevalidateSeconds": 60,
+            "srcRoute": null,
+            "dataRoute": "/_next/data/test-build-id/ssg.json"
+        },
+        "/en/fallback-blocking/a": {
+            "initialRevalidateSeconds": false,
+            "srcRoute": "/fallback-blocking/[slug]",
+            "dataRoute": "/_next/data/test-build-id/en/fallback-blocking/a.json"
+        },
+        "/en": {
+            "initialRevalidateSeconds": false,
+            "srcRoute": null,
+            "dataRoute": "/_next/data/test-build-id/index.json"
+        },
+        "/nl": {
+            "initialRevalidateSeconds": false,
+            "srcRoute": null,
+            "dataRoute": "/_next/data/test-build-id/index.json"
+        }
+    },
+    "dynamicRoutes": {
+        "/no-fallback/[slug]": {
+            "routeRegex": "^/no\\-fallback/([^/]+?)(?:/)?$",
+            "dataRoute": "/_next/data/test-build-id/no-fallback/[slug].json",
+            "fallback": false,
+            "dataRouteRegex": "^/_next/data/test-build-id/no\\-fallback/([^/]+?)\\.json$"
+        },
+        "/fallback/[slug]": {
+            "routeRegex": "^/fallback/([^/]+?)(?:/)?$",
+            "dataRoute": "/_next/data/test-build-id/fallback/[slug].json",
+            "fallback": "/fallback/[slug].html",
+            "dataRouteRegex": "^/_next/data/test-build-id/fallback/([^/]+?)\\.json$"
+        },
+        "/fallback-blocking/[slug]": {
+            "routeRegex": "^/fallback\\-blocking/([^/]+?)(?:/)?$",
+            "dataRoute": "/_next/data/test-build-id/fallback-blocking/[slug].json",
+            "fallback": null,
+            "dataRouteRegex": "^/_next/data/test-build-id/fallback\\-blocking/([^/]+?)\\.json$"
+        }
+    },
+    "notFoundRoutes": [],
+    "preview": {
+        "previewModeId": "815c0e1086134f5f9a666832bd0b2a95",
+        "previewModeSigningKey": "0aa4fa146a001d1053ec5056e1afbc933e390de4410a68782ccada0ec1066ac9",
+        "previewModeEncryptionKey": "74200f23feedb862cd352779008ce5b5285af28246bc7cd85f18803782ab4053"
+    }
+}

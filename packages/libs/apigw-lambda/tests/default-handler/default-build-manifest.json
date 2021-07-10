@@ -1,0 +1,132 @@
+{
+  "apis": {
+    "dynamic": [
+      {
+        "file": "pages/api/users/[id].js",
+        "regex": "^\\/api\\/users(?:\\/([^\\/#\\?]+?))[\\/#\\?]?$"
+      }
+    ],
+    "nonDynamic": {
+      "/api/getCustomers": "pages/api/getCustomers.js",
+      "/api/getUser": "pages/api/getUser.js"
+    }
+  },
+  "domainRedirects": {
+    "example.com": "https://www.example.com"
+  },
+  "buildId": "build-id",
+  "pages": {
+    "dynamic": [
+      {
+        "route": "/blog/[id]",
+        "regex": "^\\/blog(?:\\/([^\\/#\\?]+?))[\\/#\\?]?$"
+      },
+      {
+        "route": "/customers/[customer]",
+        "regex": "^\\/customers(?:\\/([^\\/#\\?]+?))[\\/#\\?]?$"
+      },
+      {
+        "route": "/customers/[customer]/profile",
+        "regex": "^\\/customers(?:\\/([^\\/#\\?]+?))\\/profile[\\/#\\?]?$"
+      },
+      {
+        "route": "/customers/[customer]/[post]",
+        "regex": "^\\/customers(?:\\/([^\\/#\\?]+?))(?:\\/([^\\/#\\?]+?))[\\/#\\?]?$"
+      },
+      {
+        "route": "/customers/[...catchAll]",
+        "regex": "^\\/customers(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?[\\/#\\?]?$"
+      },
+      {
+        "route": "/fallback/[slug]",
+        "regex": "^\\/fallback(?:\\/([^\\/#\\?]+?))[\\/#\\?]?$"
+      },
+      {
+        "route": "/fallback-blocking/[slug]",
+        "regex": "^\\/fallback-blocking(?:\\/([^\\/#\\?]+?))[\\/#\\?]?$"
+      },
+      {
+        "route": "/no-fallback/[slug]",
+        "regex": "^\\/no-fallback(?:\\/([^\\/#\\?]+?))[\\/#\\?]?$"
+      },
+      {
+        "route": "/users/[...user]",
+        "regex": "^\\/users(?:\\/((?:[^\\/#\\?]+?)(?:\\/(?:[^\\/#\\?]+?))*))?[\\/#\\?]?$"
+      },
+      {
+        "route": "/[root]",
+        "regex": "^(?:\\/([^\\/#\\?]+?))[\\/#\\?]?$"
+      }
+    ],
+    "ssr": {
+      "dynamic": {
+        "/[root]": "pages/[root].js",
+        "/blog/[id]": "pages/blog/[id].js",
+        "/customers/[...catchAll]": "pages/customers/[...catchAll].js",
+        "/customers/[customer]": "pages/customers/[customer].js",
+        "/customers/[customer]/[post]": "pages/customers/[customer]/[post].js",
+        "/customers/[customer]/profile": "pages/customers/[customer]/profile.js",
+        "/fallback-blocking/[slug]": "pages/fallback-blocking/[slug].js",
+        "/fallback/[slug]": "pages/fallback/[slug].js",
+        "/no-fallback/[slug]": "pages/no-fallback/[slug].js"
+      },
+      "nonDynamic": {
+        "/async-page": "pages/async-page.js",
+        "/customers": "pages/customers.js",
+        "/customers/new": "pages/customers/new.js",
+        "/erroredPage": "pages/erroredPage.js",
+        "/": "pages/index.js",
+        "/preview": "pages/preview.js",
+        "/_error": "pages/_error.js"
+      }
+    },
+    "html": {
+      "dynamic": {
+        "/users/[...user]": "pages/users/[...user].html"
+      },
+      "nonDynamic": {
+        "/terms": "pages/terms.html",
+        "/404": "pages/404.html"
+      }
+    },
+    "ssg": {
+      "dynamic": {
+        "/no-fallback/[slug]": {
+          "fallback": false
+        },
+        "/fallback/[slug]": {
+          "fallback": "/fallback/[slug].html"
+        },
+        "/fallback-blocking/[slug]": {
+          "fallback": null
+        }
+      },
+      "nonDynamic": {
+        "/no-fallback/example-static-page": {
+          "initialRevalidateSeconds": false,
+          "srcRoute": "/no-fallback/[slug]"
+        },
+        "/preview": {
+          "initialRevalidateSeconds": 5,
+          "srcRoute": null
+        },
+        "/": {
+          "initialRevalidateSeconds": false,
+          "srcRoute": null
+        },
+        "/fallback/example-static-page": {
+          "initialRevalidateSeconds": false,
+          "srcRoute": "/fallback/[slug]"
+        }
+      }
+    }
+  },
+  "publicFiles": {
+    "/favicon.ico": "favicon.ico",
+    "/file with spaces.json": "file with spaces.json",
+    "/manifest.json": "manifest.json"
+  },
+  "trailingSlash": false,
+  "bucketName": "test-bucket",
+  "region": "us-east-1"
+}

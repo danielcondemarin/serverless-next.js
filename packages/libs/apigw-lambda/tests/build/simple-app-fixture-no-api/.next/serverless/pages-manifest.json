@@ -1,0 +1,15 @@
+{
+  "/[root]": "pages/[root].js",
+  "/customers/[customer]": "pages/customers/[customer].js",
+  "/customers/[customer]/[post]": "pages/customers/[customer]/[post].js",
+  "/customers/new": "pages/customers/new.js",
+  "/customers/[customer]/profile": "pages/customers/[customer]/profile.js",
+  "/customers/[...catchAll]": "pages/customers/[...catchAll].js",
+  "/terms": "pages/terms.html",
+  "/about": "pages/about.html",
+  "/blog/[post]": "pages/blog/[post].html",
+  "/": "pages/index.js",
+  "/_app": "pages/_app.js",
+  "/_document": "pages/_document.js",
+  "/404": "pages/404.html"
+}

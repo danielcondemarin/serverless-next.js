@@ -1,0 +1,1 @@
+Having a cache/ folder allows to test the cleanup of .next/ except for cache/ for faster builds

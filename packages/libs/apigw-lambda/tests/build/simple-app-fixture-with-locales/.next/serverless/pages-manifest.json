@@ -1,0 +1,19 @@
+{
+  "/[root]": "pages/[root].js",
+  "/customers/[customer]": "pages/customers/[customer].js",
+  "/customers/[customer]/[post]": "pages/customers/[customer]/[post].js",
+  "/customers/new": "pages/customers/new.js",
+  "/customers/[customer]/profile": "pages/customers/[customer]/profile.js",
+  "/customers/[...catchAll]": "pages/customers/[...catchAll].js",
+  "/en/terms": "pages/en/terms.html",
+  "/en/about": "pages/en/about.html",
+  "/en/blog/[post]": "pages/en/blog/[post].html",
+  "/nl/terms": "pages/nl/terms.html",
+  "/nl/about": "pages/nl/about.html",
+  "/nl/blog/[post]": "pages/nl/blog/[post].html",
+  "/": "pages/index.js",
+  "/_app": "pages/_app.js",
+  "/_document": "pages/_document.js",
+  "/en/404": "pages/en/404.html",
+  "/nl/404": "pages/nl/404.html"
+}

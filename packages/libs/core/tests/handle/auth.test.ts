@@ -85,7 +85,7 @@ describe("Basic authentication", () => {
         getPage
       );
 
-      expect(route).toBeFalsy();
+      expect(route).toBe(true);
       expect(getPage).toHaveBeenCalledWith("pages/api/index.js");
     });
 
@@ -98,7 +98,7 @@ describe("Basic authentication", () => {
         getPage
       );
 
-      expect(route).toBeFalsy();
+      expect(route).toBe(true);
       expect(event.res.statusCode).toEqual(401);
     });
 
@@ -111,7 +111,7 @@ describe("Basic authentication", () => {
         getPage
       );
 
-      expect(route).toBeFalsy();
+      expect(route).toBe(true);
       expect(event.res.statusCode).toEqual(401);
     });
   });

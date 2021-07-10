@@ -1,0 +1,317 @@
+{
+  "version": 3,
+  "pages404": true,
+  "basePath": "/basepath",
+  "redirects": [
+    {
+      "source": "/basepath/old-blog/:slug",
+      "destination": "/basepath/news/:slug",
+      "statusCode": 308,
+      "regex": "^/basepath/old-blog(?:/([^/]+?))$"
+    },
+    {
+      "source": "/basepath/terms-new",
+      "destination": "/basepath/terms",
+      "statusCode": 308,
+      "regex": "^/basepath/terms-new$"
+    },
+    {
+      "source": "/basepath/old-users/:id(\\d{1,})",
+      "destination": "/basepath/users/:id",
+      "statusCode": 307,
+      "regex": "^/basepath/old-users(?:/(\\d{1,}))$"
+    },
+    {
+      "source": "/basepath/terms-redirect-dest-query",
+      "destination": "/basepath/terms?foo=bar",
+      "statusCode": 308,
+      "regex": "^/basepath/terms-redirect-dest-query$"
+    },
+    {
+      "source": "/basepath/external",
+      "destination": "https://example.com",
+      "statusCode": 308,
+      "regex": "^/basepath/external$"
+    },
+    {
+      "source": "/basepath/api/deprecated/getCustomers",
+      "destination": "/basepath/api/getCustomers",
+      "statusCode": 308,
+      "regex": "^/basepath/api/deprecated/getCustomers$"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/basepath/customers/another",
+      "headers": [
+        {
+          "key": "x-custom-header",
+          "value": "custom"
+        }
+      ],
+      "regex": "^/basepath/customers/another$"
+    },
+    {
+      "source": "/basepath/api/getCustomers",
+      "headers": [
+        {
+          "key": "x-custom-header",
+          "value": "custom"
+        }
+      ],
+      "regex": "^/basepath/api/getCustomers$"
+    }
+  ],
+  "dynamicRoutes": [
+    {
+      "page": "/api/users/[id]",
+      "regex": "^/api/users/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "id": "id"
+      },
+      "namedRegex": "^/api/users/(?<id>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/blog/[id]",
+      "regex": "^/blog/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "id": "id"
+      },
+      "namedRegex": "^/blog/(?<id>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/customers/[customer]",
+      "regex": "^/customers/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "customer": "customer"
+      },
+      "namedRegex": "^/customers/(?<customer>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/customers/[customer]/profile",
+      "regex": "^/customers/([^/]+?)/profile(?:/)?$",
+      "routeKeys": {
+        "customer": "customer"
+      },
+      "namedRegex": "^/customers/(?<customer>[^/]+?)/profile(?:/)?$"
+    },
+    {
+      "page": "/customers/[customer]/[post]",
+      "regex": "^/customers/([^/]+?)/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "customer": "customer",
+        "post": "post"
+      },
+      "namedRegex": "^/customers/(?<customer>[^/]+?)/(?<post>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/customers/[...catchAll]",
+      "regex": "^/customers/(.+?)(?:/)?$",
+      "routeKeys": {
+        "catchAll": "catchAll"
+      },
+      "namedRegex": "^/customers/(?<catchAll>.+?)(?:/)?$"
+    },
+    {
+      "page": "/fallback/[slug]",
+      "regex": "^/fallback/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "slug": "slug"
+      },
+      "namedRegex": "^/fallback/(?<slug>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/fallback-blocking/[slug]",
+      "regex": "^/fallback\\-blocking/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "slug": "slug"
+      },
+      "namedRegex": "^/fallback\\-blocking/(?<slug>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/no-fallback/[slug]",
+      "regex": "^/no\\-fallback/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "slug": "slug"
+      },
+      "namedRegex": "^/no\\-fallback/(?<slug>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/users/[...user]",
+      "regex": "^/users/(.+?)(?:/)?$",
+      "routeKeys": {
+        "user": "user"
+      },
+      "namedRegex": "^/users/(?<user>.+?)(?:/)?$"
+    },
+    {
+      "page": "/[root]",
+      "regex": "^/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "root": "root"
+      },
+      "namedRegex": "^/(?<root>[^/]+?)(?:/)?$"
+    }
+  ],
+  "dataRoutes": [
+    {
+      "page": "/",
+      "dataRouteRegex": "^/_next/data/build\\-id/index.json$"
+    },
+    {
+      "page": "/async-page",
+      "dataRouteRegex": "^/_next/data/build\\-id/async-page.json$"
+    },
+    {
+      "page": "/blog/[id]",
+      "routeKeys": {
+        "id": "id"
+      },
+      "dataRouteRegex": "^/_next/data/build\\-id/blog/([^/]+?)\\.json$",
+      "namedDataRouteRegex": "^/_next/data/build\\-id/blog/(?<id>[^/]+?)\\.json$"
+    },
+    {
+      "page": "/customers",
+      "dataRouteRegex": "^/_next/data/build\\-id/customers.json$"
+    },
+    {
+      "page": "/customers/new",
+      "dataRouteRegex": "^/_next/data/build\\-id/customers/new.json$"
+    },
+    {
+      "page": "/customers/[customer]",
+      "routeKeys": {
+        "customer": "customer"
+      },
+      "dataRouteRegex": "^/_next/data/build\\-id/customers/([^/]+?)\\.json$",
+      "namedDataRouteRegex": "^/_next/data/build\\-id/customers/(?<customer>[^/]+?)\\.json$"
+    },
+    {
+      "page": "/customers/[customer]/profile",
+      "routeKeys": {
+        "customer": "customer"
+      },
+      "dataRouteRegex": "^/_next/data/build\\-id/customers/([^/]+?)/profile\\.json$",
+      "namedDataRouteRegex": "^/_next/data/build\\-id/customers/(?<customer>[^/]+?)/profile\\.json$"
+    },
+    {
+      "page": "/customers/[customer]/[post]",
+      "routeKeys": {
+        "customer": "customer",
+        "post": "post"
+      },
+      "dataRouteRegex": "^/_next/data/build\\-id/customers/([^/]+?)/([^/]+?)\\.json$",
+      "namedDataRouteRegex": "^/_next/data/build\\-id/customers/(?<customer>[^/]+?)/(?<post>[^/]+?)\\.json$"
+    },
+    {
+      "page": "/customers/[...catchAll]",
+      "routeKeys": {
+        "catchAll": "catchAll"
+      },
+      "dataRouteRegex": "^/_next/data/build\\-id/customers/(.+?)\\.json$",
+      "namedDataRouteRegex": "^/_next/data/build\\-id/customers/(?<catchAll>.+?)\\.json$"
+    },
+    {
+      "page": "/erroredPage",
+      "dataRouteRegex": "^/_next/data/build\\-id/erroredPage.json$"
+    },
+    {
+      "page": "/fallback/[slug]",
+      "routeKeys": {
+        "slug": "slug"
+      },
+      "dataRouteRegex": "^/_next/data/build\\-id/fallback/([^/]+?)\\.json$",
+      "namedDataRouteRegex": "^/_next/data/build\\-id/fallback/(?<slug>[^/]+?)\\.json$"
+    },
+    {
+      "page": "/fallback-blocking/[slug]",
+      "routeKeys": {
+        "slug": "slug"
+      },
+      "dataRouteRegex": "^/_next/data/build\\-id/fallback\\-blocking/([^/]+?)\\.json$",
+      "namedDataRouteRegex": "^/_next/data/build\\-id/fallback\\-blocking/(?<slug>[^/]+?)\\.json$"
+    },
+    {
+      "page": "/no-fallback/[slug]",
+      "routeKeys": {
+        "slug": "slug"
+      },
+      "dataRouteRegex": "^/_next/data/build\\-id/no\\-fallback/([^/]+?)\\.json$",
+      "namedDataRouteRegex": "^/_next/data/build\\-id/no\\-fallback/(?<slug>[^/]+?)\\.json$"
+    },
+    {
+      "page": "/preview",
+      "dataRouteRegex": "^/_next/data/build\\-id/preview.json$"
+    },
+    {
+      "page": "/[root]",
+      "routeKeys": {
+        "root": "root"
+      },
+      "dataRouteRegex": "^/_next/data/build\\-id/([^/]+?)\\.json$",
+      "namedDataRouteRegex": "^/_next/data/build\\-id/(?<root>[^/]+?)\\.json$"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/basepath/terms-rewrite",
+      "destination": "/basepath/terms",
+      "regex": "^/basepath/terms-rewrite$"
+    },
+    {
+      "source": "/basepath/index-rewrite",
+      "destination": "/basepath/",
+      "regex": "^/basepath/index-rewrite$"
+    },
+    {
+      "source": "/basepath/path-rewrite/:slug",
+      "destination": "/basepath/terms",
+      "regex": "^/basepath/path-rewrite(?:/([^/]+?))$"
+    },
+    {
+      "source": "/basepath/terms",
+      "destination": "/basepath/",
+      "regex": "^/basepath/terms$"
+    },
+    {
+      "source": "/basepath/promise-page",
+      "destination": "/basepath/async-page",
+      "regex": "^/basepath/promise-page$"
+    },
+    {
+      "source": "/basepath/terms-rewrite-dest-query",
+      "destination": "/basepath/terms?foo=bar",
+      "regex": "^/basepath/terms-rewrite-dest-query$"
+    },
+    {
+      "source": "/basepath/external-rewrite",
+      "destination": "https://external.com",
+      "regex": "^/basepath/external-rewrite$"
+    },
+    {
+      "source": "/basepath/api/rewrite-getCustomers",
+      "destination": "/basepath/api/getCustomers",
+      "regex": "^/basepath/api/rewrite-getCustomers$"
+    },
+    {
+      "source": "/basepath/api/getCustomers",
+      "destination": "/basepath/api/another",
+      "regex": "^/basepath/api/getCustomers$"
+    },
+    {
+      "source": "/basepath/api/notfound",
+      "destination": "/basepath/api/missing",
+      "regex": "^/basepath/api/notfound$"
+    },
+    {
+      "source": "/basepath/api/user/:id",
+      "destination": "/basepath/api/getUser",
+      "regex": "^/basepath/api/user(?:/([^/]+?))$"
+    },
+    {
+      "source": "/basepath/api/external-rewrite",
+      "destination": "https://external.com",
+      "regex": "^/basepath/api/external-rewrite$"
+    }
+  ]
+}
