@@ -3275,7 +3275,7 @@
     regex-parser "^2.2.10"
 
 "@sls-next/lambda-at-edge@link:./packages/libs/lambda-at-edge":
-  version "3.2.0-alpha.18"
+  version "3.2.0-alpha.20"
   dependencies:
     "@aws-sdk/client-s3" "^3.19.0"
     "@aws-sdk/client-sqs" "^3.19.0"
@@ -3515,9 +3515,9 @@
     form-data "^3.0.0"
 
 "@types/node@*", "@types/node@>=13.7.0", "@types/node@^16.0.0":
-  version "16.0.3"
-  resolved "https://registry.npmjs.org/@types/node/-/node-16.0.3.tgz#f99794f182a9ffeaf6a0b589e3d3dc652a623ad5"
-  integrity sha512-QhhSbE1wJMbh+lDsb9G6UFmyojhEgoO7dFVDBkli80sp3sPFojGh6TJXsht9Qbe2VWi91pbj08+1Kvue61RwsQ==
+  version "16.3.2"
+  resolved "https://registry.npmjs.org/@types/node/-/node-16.3.2.tgz#655432817f83b51ac869c2d51dd8305fb8342e16"
+  integrity sha512-jJs9ErFLP403I+hMLGnqDRWT0RYKSvArxuBVh2veudHV7ifEC1WAmjJADacZ7mRbA2nWgHtn8xyECMAot0SkAw==
 
 "@types/normalize-package-data@^2.4.0":
   version "2.4.0"
