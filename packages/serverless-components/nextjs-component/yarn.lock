@@ -952,14 +952,14 @@
   integrity sha512-9NET910DNaIPngYnLLPeg+Ogzqsi9uM4mSboU5y6p8S5DzMTVEsJZrawi+BoDNUVBa2DhJqQYUFvMDfgU062LQ==
 
 "@sls-next/aws-cloudfront@link:../aws-cloudfront":
-  version "3.2.0-alpha.18"
+  version "3.2.0-alpha.19"
   dependencies:
     "@serverless/core" "^1.1.2"
     aws-sdk "^2.935.0"
     ramda "^0.27.1"
 
 "@sls-next/aws-lambda@link:../aws-lambda":
-  version "3.2.0-alpha.18"
+  version "3.2.0-alpha.19"
   dependencies:
     "@serverless/aws-iam-role" "^1.0.0"
     "@serverless/aws-lambda-layer" "^1.0.0"
@@ -973,7 +973,7 @@
     ramda "^0.27.0"
 
 "@sls-next/aws-s3@link:../aws-s3":
-  version "3.2.0-alpha.18"
+  version "3.2.0-alpha.19"
   dependencies:
     "@serverless/core" "^1.1.2"
     archiver "^5.3.0"
@@ -989,7 +989,7 @@
   version "3.2.0-alpha.4"
 
 "@sls-next/cloudfront@link:../../libs/cloudfront":
-  version "3.2.0-alpha.18"
+  version "3.2.0-alpha.19"
   dependencies:
     aws-sdk "^2.938.0"
 
@@ -1006,7 +1006,7 @@
   version "3.2.0-alpha.4"
 
 "@sls-next/lambda-at-edge@link:../../libs/lambda-at-edge":
-  version "3.2.0-alpha.18"
+  version "3.2.0-alpha.20"
   dependencies:
     "@aws-sdk/client-s3" "^3.19.0"
     "@aws-sdk/client-sqs" "^3.19.0"
@@ -1027,7 +1027,7 @@
   version "3.2.0-alpha.17"
 
 "@sls-next/s3-static-assets@link:../../libs/s3-static-assets":
-  version "3.2.0-alpha.18"
+  version "3.2.0-alpha.19"
   dependencies:
     aws-sdk "^2.938.0"
     fast-glob "^3.2.5"
@@ -1260,9 +1260,9 @@ atob@^2.1.2:
   integrity sha512-Wm6ukoaOGJi/73p/cl2GvLjTI5JM1k/O14isD73YML8StrH/7/lRFgmg8nICZgD3bZZvjwCGxtMOD3wWNAu8cg==
 
 aws-sdk@^2.387.0, aws-sdk@^2.488.0, aws-sdk@^2.920.0, aws-sdk@^2.935.0, aws-sdk@^2.938.0:
-  version "2.942.0"
-  resolved "https://registry.npmjs.org/aws-sdk/-/aws-sdk-2.942.0.tgz#594d2e629ab4a2286eaf69c54658cea3acce4ec7"
-  integrity sha512-9Y+DWSTvolTJe0nl55sKnsPgtfBCV8WKDE8cAUhgn9MIb4tAGpwejS14AUmqeZ12J58AsgPT3PffdI7Hq9IEtQ==
+  version "2.946.0"
+  resolved "https://registry.npmjs.org/aws-sdk/-/aws-sdk-2.946.0.tgz#74d8748c6fd4ae6edb35e6fa04c0023c34674d47"
+  integrity sha512-d0fbVNHdpoeszGUcxOV8m+/kLNxUfKP5QsGwaRjcQfvEokFmvdKsvw87LhepFOa00NaI4J3jt8AbsX4mvmcChg==
   dependencies:
     buffer "4.9.2"
     events "1.1.1"
